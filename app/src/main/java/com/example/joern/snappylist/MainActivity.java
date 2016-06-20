@@ -20,8 +20,11 @@ public class MainActivity extends AppCompatActivity {
 
         ListView lv = (ListView) findViewById(R.id.lv_list);
 
-        if(lv != null)
+        if(lv != null){
+            lv.setFastScrollEnabled(true);
             lv.setAdapter(adapter);
+        }
+
 
     }
 }
