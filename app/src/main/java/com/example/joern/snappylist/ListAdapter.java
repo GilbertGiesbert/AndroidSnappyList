@@ -65,7 +65,7 @@ public class ListAdapter extends ArrayAdapter<ListItem> implements SectionIndexe
         if (position > maxPosition)
             position = maxPosition;
 
-        Log.i(TAG, "pos for sec "+section+" = "+position+"");
+        // Log.i(TAG, "pos for sec "+section+" = "+position+"");
         return position;
     }
 
@@ -73,7 +73,7 @@ public class ListAdapter extends ArrayAdapter<ListItem> implements SectionIndexe
 
         int section = position / sectionSize;
 
-        Log.i(TAG, "sec for pos "+position+" = "+section+"");
+        // Log.i(TAG, "sec for pos "+position+" = "+section+"");
         return section;
     }
 
@@ -132,7 +132,6 @@ public class ListAdapter extends ArrayAdapter<ListItem> implements SectionIndexe
                 // set correct image async'ly
                 viewHolder.imageView.setTag(item.getImageUrl());
                 new AsyncImageDownloadTask(viewHolder.imageView).execute(item.getImageUrl());
-
             }
         }
 

@@ -8,6 +8,8 @@ import android.support.v4.content.res.ResourcesCompat;
 import android.util.Log;
 import android.widget.ImageView;
 
+import com.example.joern.snappylist.cache.MemoryCache;
+
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
@@ -41,6 +43,8 @@ import java.net.URL;
 
 public class AsyncImageDownloadTask extends AsyncTask<String, Void, ImageLoad>{
 
+    private static final String TAG = AsyncImageDownloadTask.class.getSimpleName();
+
     private final WeakReference<ImageView> imageViewReference;
 
     public AsyncImageDownloadTask(ImageView imageView) {
@@ -57,6 +61,22 @@ public class AsyncImageDownloadTask extends AsyncTask<String, Void, ImageLoad>{
 
     private ImageLoad downloadBitmap(String imageUrl) {
 
+
+
+
+        // testing cache
+        Object cached = MemoryCache.getInstance().getLru().get(imageUrl);
+        if(cached != null && cached instanceof Bitmap){
+
+            Log.i(TAG, "found in cache: "+imageUrl);
+
+            ImageLoad imageLoad = new ImageLoad();
+            imageLoad.setImageUrl(imageUrl);
+            imageLoad.setImage((Bitmap) cached);
+            return imageLoad;
+        }
+
+        Log.i(TAG, "no cache for: "+imageUrl);
         HttpURLConnection urlConnection = null;
         try {
             URL uri = new URL(imageUrl);
@@ -71,16 +91,26 @@ public class AsyncImageDownloadTask extends AsyncTask<String, Void, ImageLoad>{
 
                 Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
 
+
+                // testing cache
+                MemoryCache.getInstance().getLru().put(imageUrl, bitmap);
+
                 ImageLoad imageLoad = new ImageLoad();
                 imageLoad.setImageUrl(imageUrl);
                 imageLoad.setImage(bitmap);
                 return imageLoad;
             }
-        } catch (Exception e) {
 
-            Log.w("", "Error downloading image from " + imageUrl);
+        } catch (Exception e){
 
-        } finally {
+            Log.e(TAG, "Exception in downloadBitmap() while downloading image from " + imageUrl, e);
+
+        } catch (Error e){
+
+            Log.e(TAG, "Error in downloadBitmap() while downloading image from " + imageUrl, e);
+
+        }
+        finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
             }
@@ -90,6 +120,9 @@ public class AsyncImageDownloadTask extends AsyncTask<String, Void, ImageLoad>{
 
     @Override
     protected void onPostExecute(ImageLoad imageLoad) {
+
+        // TODO handle OutOfMemoryError caught in downloadBitmap
+
 
         if (isCancelled() || imageLoad == null) {
             imageLoad = new ImageLoad();
@@ -112,11 +145,11 @@ public class AsyncImageDownloadTask extends AsyncTask<String, Void, ImageLoad>{
                 }
             }
             else{
-                Log.w("", "referent of imageViewReference == null");
+                Log.w(TAG, "referent of imageViewReference == null");
             }
         }
         else{
-            Log.w("", "imageViewReference == null");
+            Log.w(TAG, "imageViewReference == null");
         }
     }
 }
